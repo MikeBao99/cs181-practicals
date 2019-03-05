@@ -228,6 +228,29 @@ def system_call_count_feats(tree):
             c['num_system_calls'] += 1
     return c
 
+## Add Our Custom Functions Below
+
+def system_call_termination_reason(tree):
+    c = Counter()
+    for el in tree.iter():
+        # ignore everything outside the "all_section" element
+        if el.tag == "process"
+            c["termination_reason-"+el.attrib['terminationreason']] = 1
+    return c
+
+def system_call_count_feat_types(tree):
+    c = Counter()
+    in_all_section = False
+    for el in tree.iter():
+        # ignore everything outside the "all_section" element
+        if el.tag == "all_section" and not in_all_section:
+            in_all_section = True
+        elif el.tag == "all_section" and in_all_section:
+            in_all_section = False
+        elif in_all_section:
+            c['system_call-'+el.tag] += 1
+    return c
+
 ## The following function does the feature extraction, learning, and prediction
 def main():
     train_dir = "train"
@@ -235,7 +258,7 @@ def main():
     outputfile = "sample_predictions.csv"  # feel free to change this or take it as an argument
     
     # TODO put the names of the feature functions you've defined above in this list
-    ffs = [first_last_system_call_feats, system_call_count_feats]
+    ffs = [first_last_system_call_feats, system_call_count_feats, system_call_termination_reason, system_call_count_feat_types]
     
     # extract features
     print "extracting training features..."
