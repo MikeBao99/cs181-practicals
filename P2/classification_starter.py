@@ -77,7 +77,7 @@ import numpy as np
 from scipy import sparse
 from scipy.special import softmax
 from sklearn.linear_model import LogisticRegressionCV
-
+from sklearn.model_selection import train_test_split
 import util
 
 
@@ -253,6 +253,20 @@ def system_call_count_feat_types(tree):
             c['system_call-'+el.tag] += 1
     return c
 
+def system_call_bigrams(tree):
+    c = Counter()
+    in_all_section = False
+    prev = None
+    for el in tree.iter():
+        # ignore everything outside the "all_section" element
+        if el.tag == "all_section" and not in_all_section:
+            in_all_section = True
+        elif el.tag == "all_section" and in_all_section:
+            in_all_section = False
+        elif in_all_section and prev:
+            c['system_call-'+el.tag+prev] += 1
+            prev = el.tag
+    return c
 
 priors = [3.69, 1.62, 1.20, 1.03, 1.33, 1.26, 1.72, 1.33, 52.14, 0.68, 17.56, 1.04, 12.18, 1.91, 1.30]
 
@@ -263,20 +277,25 @@ def main():
     outputfile = "sample_predictions.csv"  # feel free to change this or take it as an argument
 
     # TODO put the names of the feature functions you've defined above in this list
-    ffs = [first_last_system_call_feats, system_call_count_feats, system_call_termination_reason, system_call_count_feat_types]
+    ffs = [first_last_system_call_feats, system_call_count_feats, system_call_termination_reason, system_call_count_feat_types, system_call_bigrams]
     # ffs = [system_call_termination_reason]
     # extract features
     print "extracting training features..."
     X_train,global_feat_dict,t_train,train_ids = extract_feats(ffs, train_dir)
     print "done extracting training features"
     print
+    
+    X_train, X_test, t_train, t_test = train_test_split(X_train, t_train)
 
     # TODO train here, and learn your classification parameters
     print "learning..."
-    clf = LogisticRegressionCV(cv=5, max_iter=100000)
+    clf = LogisticRegressionCV(cv=5)
     clf.fit(X_train,t_train)
     print "done learning"
     print
+
+    print "score"
+    print clf.score(X_test, t_test)
 
     # get rid of training data and load test data
     del X_train
