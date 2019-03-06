@@ -238,7 +238,8 @@ def system_call_termination_reason(tree):
         # ignore everything outside the "all_section" element
         if el.tag == "process":
             c["termination_reason-"+el.attrib['terminationreason']] = 1
-            return c
+            c["executionstatus-"+el.attrib['executionstatus']] = 1
+    return c
 
 def system_call_count_feat_types(tree):
     c = Counter()
@@ -264,7 +265,7 @@ def system_call_bigrams(tree):
         elif el.tag == "all_section" and in_all_section:
             in_all_section = False
         elif in_all_section and prev:
-            c['system_call-'+el.tag+prev] += 1
+            c['system_call_bigram-'+el.tag+prev] += 1
             prev = el.tag
     return c
 
@@ -285,17 +286,17 @@ def main():
     print "done extracting training features"
     print
     
-    X_train, X_test, t_train, t_test = train_test_split(X_train, t_train)
+    # X_train, X_test, t_train, t_test = train_test_split(X_train, t_train, random_state = 1)
 
     # TODO train here, and learn your classification parameters
     print "learning..."
-    clf = LogisticRegressionCV(cv=5)
+    clf = LogisticRegressionCV(cv=5, max_iter=500)
     clf.fit(X_train,t_train)
     print "done learning"
     print
 
-    print "score"
-    print clf.score(X_test, t_test)
+    # print "score"
+    # print clf.score(X_test, t_test)
 
     # get rid of training data and load test data
     del X_train
