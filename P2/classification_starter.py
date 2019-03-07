@@ -319,7 +319,8 @@ def main():
     outputfile = "predictions3062019.csv"  # feel free to change this or take it as an argument
 
     # TODO put the names of the feature functions you've defined above in this list
-    ffs = [first_last_system_call_feats, system_call_count_feats, system_call_termination_reason, system_call_count_feat_types, system_call_processes, system_call_unsuccessful]
+    ffs = [system_call_termination_reason, system_call_bigrams, system_call_trigrams]
+    # ffs = [first_last_system_call_feats, system_call_count_feats, system_call_termination_reason, system_call_count_feat_types, system_call_processes, system_call_unsuccessful]
     # ffs = [system_call_termination_reason]
     # extract features
     
@@ -342,9 +343,20 @@ def main():
     # TODO train here, and learn your classification parameters
     print "learning..."
     print(X_train.shape)
-    # clf = RandomForestClassifier()
+
+    # for n in [10, 100, 1000]:
+    #     clf = RandomForestClassifier(n_estimators = 100)
+    #     clf.fit(X_train,t_train)
+    #     print "done learning"
+    #     print n
+    #     print
+
+    #     print "score"
+    #     print clf.score(X_test, t_test)
+
+    clf = RandomForestClassifier(n_estimators = 100)
     # clf = LinearSVC()
-    clf = MLPClassifier(hidden_layer_sizes = (80, 80), max_iter=5000, random_state = 1, alpha=0.05)
+    # clf = MLPClassifier(hidden_layer_sizes = (80, 80), max_iter=5000, random_state = 1, alpha=0.05)
 
     # clf = GaussianNB()
     clf.fit(X_train,t_train)
