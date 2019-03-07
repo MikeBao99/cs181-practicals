@@ -76,8 +76,20 @@ except ImportError:
 import numpy as np
 from scipy import sparse
 from scipy.special import softmax
-from sklearn.linear_model import LogisticRegressionCV
+from sklearn.linear_model import LogisticRegression
+from sklearn.neural_network import MLPClassifier
+from sklearn.svm import LinearSVC
+from xgboost import XGBClassifier
+from sklearn.decomposition import TruncatedSVD as PCA
 from sklearn.model_selection import train_test_split
+from sklearn.gaussian_process import GaussianProcessClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import RandomForestClassifier
+
+
+import pickle
+
+from sklearn.gaussian_process.kernels import RBF
 import util
 
 
@@ -246,28 +258,57 @@ def system_call_count_feat_types(tree):
     in_all_section = False
     for el in tree.iter():
         # ignore everything outside the "all_section" element
-        if el.tag == "all_section" and not in_all_section:
-            in_all_section = True
-        elif el.tag == "all_section" and in_all_section:
-            in_all_section = False
-        elif in_all_section:
-            c['system_call-'+el.tag] += 1
+        c['system_call-'+el.tag] += 1
     return c
 
 def system_call_bigrams(tree):
     c = Counter()
     in_all_section = False
-    prev = None
+    prev = ""
     for el in tree.iter():
         # ignore everything outside the "all_section" element
         if el.tag == "all_section" and not in_all_section:
             in_all_section = True
         elif el.tag == "all_section" and in_all_section:
             in_all_section = False
-        elif in_all_section and prev:
+        elif in_all_section:
             c['system_call_bigram-'+el.tag+prev] += 1
             prev = el.tag
     return c
+
+def system_call_trigrams(tree):
+    c = Counter()
+    in_all_section = False
+    prev = ""
+    pre = ""
+    for el in tree.iter():
+        # ignore everything outside the "all_section" element
+        if el.tag == "all_section" and not in_all_section:
+            in_all_section = True
+        elif el.tag == "all_section" and in_all_section:
+            in_all_section = False
+        elif in_all_section:
+            c['system_call_bigram-'+pre+prev+el.tag] += 1
+            pre = prev
+            prev = el.tag
+    return c
+
+def system_call_processes(tree):
+    c = Counter()
+    for el in tree.iter():
+        if el.tag == "process":
+            if "startreason" in el.attrib and "terminationreason" in el.attrib:
+                c['system_call_processes_startreason-'+el.attrib['startreason']] += 1
+                c['system_call_processes_terminationreason-'+el.attrib['terminationreason']] += 1
+    return c
+
+def system_call_unsuccessful(tree):
+    c = Counter()
+    for el in tree.iter():
+        if "successful" in el.attrib and el.attrib['successful'] == "0":
+            c['system_call_unsuccessful-'+el.tag] += 1
+    return c
+
 
 priors = [3.69, 1.62, 1.20, 1.03, 1.33, 1.26, 1.72, 1.33, 52.14, 0.68, 17.56, 1.04, 12.18, 1.91, 1.30]
 
@@ -275,22 +316,37 @@ priors = [3.69, 1.62, 1.20, 1.03, 1.33, 1.26, 1.72, 1.33, 52.14, 0.68, 17.56, 1.
 def main():
     train_dir = "train"
     test_dir = "test"
-    outputfile = "sample_predictions.csv"  # feel free to change this or take it as an argument
+    outputfile = "predictions3062019.csv"  # feel free to change this or take it as an argument
 
     # TODO put the names of the feature functions you've defined above in this list
-    ffs = [first_last_system_call_feats, system_call_count_feats, system_call_termination_reason, system_call_count_feat_types, system_call_bigrams]
+    ffs = [first_last_system_call_feats, system_call_count_feats, system_call_termination_reason, system_call_count_feat_types, system_call_processes, system_call_unsuccessful]
     # ffs = [system_call_termination_reason]
     # extract features
-    print "extracting training features..."
-    X_train,global_feat_dict,t_train,train_ids = extract_feats(ffs, train_dir)
-    print "done extracting training features"
-    print
     
-    # X_train, X_test, t_train, t_test = train_test_split(X_train, t_train, random_state = 1)
+
+    first = True
+
+    if first: 
+        print "extracting training features..."
+        X_train,global_feat_dict,t_train,train_ids = extract_feats(ffs, train_dir)
+        # print "\n\n\n"
+        # print len(global_feat_dict)
+        print "done extracting training features"
+        print
+        # X_train, X_test, t_train, t_test = train_test_split(X_train, t_train, random_state = 1)
+        # pickle.dump( (X_train, X_test, t_train, t_test, global_feat_dict,t_train,train_ids), open( "save.p", "wb" ) )
+    else:
+        X_train, X_test, t_train, t_test, global_feat_dict,t_train,train_ids = pickle.load( open( "save.p", "rb" ) )
+        print(len(global_feat_dict))
 
     # TODO train here, and learn your classification parameters
     print "learning..."
-    clf = LogisticRegressionCV(cv=5, max_iter=500)
+    print(X_train.shape)
+    # clf = RandomForestClassifier()
+    # clf = LinearSVC()
+    clf = MLPClassifier(hidden_layer_sizes = (80, 80), max_iter=5000, random_state = 1, alpha=0.05)
+
+    # clf = GaussianNB()
     clf.fit(X_train,t_train)
     print "done learning"
     print
