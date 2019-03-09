@@ -74,6 +74,7 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 import numpy as np
+from sklearn.ensemble import AdaBoostClassifier
 from scipy import sparse
 from scipy.special import softmax
 from sklearn.linear_model import LogisticRegression
@@ -354,12 +355,14 @@ def main():
     #     print "score"
     #     print clf.score(X_test, t_test)
 
-    clf = RandomForestClassifier(n_estimators = 100)
+    import xgboost
+
+    clf = RandomForestClassifier(n_estimators = 100000)
     # clf = LinearSVC()
     # clf = MLPClassifier(hidden_layer_sizes = (80, 80), max_iter=5000, random_state = 1, alpha=0.05)
 
     # clf = GaussianNB()
-    clf.fit(X_train,t_train)
+    clf.fit((X_train),t_train)
     print "done learning"
     print
 
@@ -377,7 +380,7 @@ def main():
 
     # TODO make predictions on text data and write them out
     print "making predictions..."
-    preds = clf.predict(X_test)
+    preds = clf.predict((X_test))
     print "done making predictions"
     print
 
