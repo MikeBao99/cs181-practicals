@@ -30,10 +30,10 @@ class Learner(object):
                         for m in range(b):
                             if i <= l:
                                 self.Q[i][j][k][l][m][1] = 0.3
-                            elif i >= j:
+                            elif i >= m:
                                 self.Q[i][j][k][l][m][0] = 0.3
         self.eta = 0.5
-        # monkey location, distance, tree bot, tree top, monkey velocity
+        # monkey location, monkey velocity, distance, tree bot, tree top
 
     def reset(self):
         self.last_state  = None
