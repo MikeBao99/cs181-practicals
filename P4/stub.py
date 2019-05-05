@@ -2,7 +2,8 @@
 import numpy as np
 import numpy.random as npr
 import pygame as pg
-
+import random
+import traceback
 from SwingyMonkey import SwingyMonkey
 
 
@@ -15,34 +16,39 @@ class Learner(object):
         self.last_state  = None
         self.last_action = None
         self.last_reward = None
-        self.Q = np.zeros((4,3,3,4,4,2))
-        self.eta = 0.8
+        self.a = 9 # horizontal
+        self.b = 6 # vertical
+        self.gamma = 1
+        self.epsilon = 0.1
+        a = self.a
+        b = self.b
+        self.Q = np.zeros((b,a,a,b,b,2))
+        for i in range(b):
+            for j in range(a):
+                for k in range(a):
+                    for l in range(b):
+                        for m in range(b):
+                            if i <= l:
+                                self.Q[i][j][k][l][m][1] = 0.3
+                            elif i >= j:
+                                self.Q[i][j][k][l][m][0] = 0.3
+        self.eta = 0.5
         # monkey location, distance, tree bot, tree top, monkey velocity
 
     def reset(self):
         self.last_state  = None
         self.last_action = None
         self.last_reward = None
-        self.Q = np.zeros((4,3,3,4,4,2))
+        self.eta *= 0.95
+        self.epsilon *= 0.8
+        # self.Q = np.zeros((b,a,a,b,b,2))
 
         
     def cat_hor(self,x):
-        if x < 200:
-            return 0
-        if x < 400:
-            return 1
-        else:
-            return 2
+        return int(x / (600 / self.a))
     
     def cat_vert(self,x):
-        if x < 100:
-            return 0
-        if x < 200:
-            return 1
-        if x < 300:
-            return 2
-        else:
-            return 3
+        return int(x / (400 / self.b))
     
     def action_callback(self, state):
         '''
@@ -71,7 +77,7 @@ class Learner(object):
 
             m_loc_c,m_vel_C,dist_c,t_bot_c,t_top_c= 0,0,0,0,0
             m_loc_c = self.cat_vert(state['monkey']['bot'])
-            print(state['monkey']['vel'])
+            # print(state['monkey']['vel'])
             if state['monkey']['vel'] > 0:
                 m_vel_c = 2
             elif state['monkey']['vel'] > -20:
@@ -82,34 +88,41 @@ class Learner(object):
             t_bot_c = self.cat_vert(state['tree']['bot'])
             t_top_c = self.cat_vert(state['tree']['top'])
 
-            self.Q[m_loc,m_vel,dist,t_bot,t_top,self.last_action] -= self.eta*(self.Q[m_loc,m_vel,dist,t_bot,t_top,self.last_action]  - self.last_reward - max(self.Q[m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,0] ,self.Q[m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,1]))
-            print(self.Q[m_loc,m_vel,dist,t_bot,t_top,self.last_action])
+            self.Q[m_loc,m_vel,dist,t_bot,t_top,self.last_action] -= self.eta*(self.Q[m_loc,m_vel,dist,t_bot,t_top,self.last_action]  - self.last_reward - 
+                self.gamma * max(self.Q[m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,0],self.Q[m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,1]))
+            # print(self.Q[m_loc,m_vel,dist,t_bot,t_top,self.last_action])
             if self.Q[m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,0] >= self.Q[m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,1]:
                 self.last_action = 0
             else:
                 self.last_action = 1
 
+            if m_loc_c >= self.b - 1:
+                self.last_action = 0
             if m_loc_c == 0:
                 self.last_action = 1
+
+            if random.random() < self.epsilon:
+                self.last_action = 1 - self.last_action
+
+            print(np.count_nonzero(self.Q))
           
           
             self.last_state  = state
 
             return self.last_action
         except Exception as e:
-            print(e)
-            print("holy crap")
+            print(traceback.format_exc())
+            # print(e)
+            # print("holy crap")
             self.last_state = state
             self.last_action = 0
-            return 0
+            return self.last_action
 
     def reward_callback(self, reward):
         '''This gets called so you can see what reward you get.'''
 
-        if reward < 0:
-            self.last_reward = reward
-        else:
-            self.last_reward = 2
+        self.last_reward = reward
+        return self.last_reward
 
 
 def run_games(learner, hist, iters = 100, t_len = 100):
