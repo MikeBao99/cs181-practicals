@@ -1,0 +1,19 @@
+We split states into buckets
+	Monkey vertical: 4 buckets
+	Monkey velocity: 2 buckets (changed to 3)
+	Distance to tree: 3 buckets
+	Tree bottom: 4 buckets
+	Tree top: 4 buckets
+	Action (jump/not jump): 2 buckets
+Rationale for not adding a lot of states: takes too long to train (visit
+	every state)
+
+Changed monkey velocity to 3 buckets
+
+Then added boundary conditions: if going to fall off the bottom then jump,
+	top then don't jump
+
+Instead of initializing to 0, set Q to be >0 if the monkey was in the gap 
+	between the trees
+
+Implemented epsilon-greedy exploration
