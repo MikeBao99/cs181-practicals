@@ -16,4 +16,26 @@ Then added boundary conditions: if going to fall off the bottom then jump,
 Instead of initializing to 0, set Q to be >0 if the monkey was in the gap 
 	between the trees
 
-Implemented epsilon-greedy exploration
+Implemented epsilon-greedy exploration; epsilon = 0.1
+
+Changed buckets to help Monkey learn more granular actions:
+	vertical 6 buckets
+	horizontal 9 buckets
+	velocity still 3 buckets 
+
+Monkey was learning too slowly; changed eta to 0.8 (Trial 1)
+
+Changed vertical to 10 buckets; dramatic improvement (Trial 2)
+
+Changed vertical to 20 buckets to see if it would help; good improvement
+	(Trial 3)
+
+Changed back to 10 vertical and tried increasing to 15 horizontal
+ 	to see if increasing horizontal helps (Trial 4); it does seem to help
+
+Tried 15 horizontal, 10 vertical, 6 velocity buckets (Trial 5); This performed
+	better than with 3 velocity buckets
+
+## TODO
+Make acceleration buckets
+Implement SARSA

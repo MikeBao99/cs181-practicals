@@ -1,0 +1,3 @@
+Vertical buckets: 10
+Horizontal buckets: 15
+Velocity buckets: 3
