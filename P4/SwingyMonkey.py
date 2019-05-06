@@ -2,7 +2,6 @@ import sys
 import pygame as pg
 import numpy.random as npr
 
-
 class SwingyMonkey:
 
     def __init__(self, sound=True, text=None, action_callback=None, 

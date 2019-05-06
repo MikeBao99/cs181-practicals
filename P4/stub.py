@@ -17,6 +17,8 @@ class Learner(object):
         self.last_state  = None
         self.last_action = None
         self.last_reward = None
+        self.acceleration = 0.
+        self.n = 0.
         self.a = 15 # horizontal
         self.b = 10 # vertical
         self.v = 6 # velocity
@@ -27,23 +29,26 @@ class Learner(object):
         v = self.v
         self.Q = Q
         if self.Q is None or Q.shape != (b,v,a,b,b,2):
-            self.Q = np.zeros((b,v,a,b,b,2))
-            for i in range(b):
-                for j in range(v):
-                    for k in range(a):
-                        for l in range(b):
-                            for m in range(b):
-                                if i <= l:
-                                    self.Q[i][j][k][l][m][1] = 0.3
-                                elif i >= m:
-                                    self.Q[i][j][k][l][m][0] = 0.3
+            self.Q = np.zeros((2,b,v,a,b,b,2))
+            for ii in range(2):
+                for i in range(b):
+                    for j in range(v):
+                        for k in range(a):
+                            for l in range(b):
+                                for m in range(b):
+                                    if i <= l:
+                                        self.Q[ii][i][j][k][l][m][1] = 0.3
+                                    elif i >= m:
+                                        self.Q[ii][i][j][k][l][m][0] = 0.3
         self.eta = 0.8
-        # monkey location, monkey velocity, distance, tree bot, tree top
+        # acceleration, monkey location, monkey velocity, distance, tree bot, tree top
 
     def reset(self):
         self.last_state  = None
         self.last_action = None
         self.last_reward = None
+        self.acceleration = 0.
+        self.n = 0.
         self.eta *= 0.95
         self.epsilon *= 0.8
         # self.Q = np.zeros((b,v,a,b,b,2))
@@ -74,9 +79,7 @@ class Learner(object):
 
         # You'll need to select and action and return it.
         # Return 0 to swing and 1 to jump.
-
-
-        try:       
+        try:
             m_loc,m_vel,dist,t_bot,t_top = 0,0,0,0,0
             m_loc = self.cat_vert(self.last_state['monkey']['bot'])
             m_vel = self.cat_vel(self.last_state['monkey']['vel'])
@@ -92,6 +95,12 @@ class Learner(object):
             t_bot_c = self.cat_vert(state['tree']['bot'])
             t_top_c = self.cat_vert(state['tree']['top'])
 
+            if self.last_action == 0:
+                self.acceleration = self.last_state['monkey']['vel'] - state['monkey']['vel']
+                if self.acceleration > 2:
+                    self.acceleration = 1
+                else:
+                    self.acceleration = 0
             self.Q[m_loc,m_vel,dist,t_bot,t_top,self.last_action] -= self.eta*(self.Q[m_loc,m_vel,dist,t_bot,t_top,self.last_action]  - self.last_reward - 
                 self.gamma * max(self.Q[m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,0],self.Q[m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,1]))
             # print(self.Q[m_loc,m_vel,dist,t_bot,t_top,self.last_action])
@@ -108,7 +117,7 @@ class Learner(object):
             if random.random() < 0.5 * self.epsilon:
                 self.last_action = 1 - self.last_action
 
-            print(np.count_nonzero(self.Q))
+            # print(np.count_nonzero(self.Q))
           
           
             self.last_state  = state
@@ -129,7 +138,7 @@ class Learner(object):
         return self.last_reward
 
 
-def run_games(learner, hist, iters = 100, t_len = 100):
+def run_games(learner, hist, iters = 100, t_len = 1):
     '''
     Driver function to simulate learning by having the agent play a sequence of games.
     '''
@@ -174,7 +183,7 @@ if __name__ == '__main__':
         hist = []
 
     # Run games. 
-    run_games(agent, hist, 50, 1)
+    run_games(agent, hist, 50, 0)
 
     plt.scatter(range(1, len(hist)+1), hist)
     plt.title(fr"Monkey's Scores ($\eta$ = {eta_orig}, "
