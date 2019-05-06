@@ -37,9 +37,9 @@ class Learner(object):
                             for l in range(b):
                                 for m in range(b):
                                     if i <= l and j <= v/2:
-                                        self.Q[ii][i][j][k][l][m][1] = 0.3
+                                        self.Q[ii][i][j][k][l][m][1] = 0.1
                                     elif i >= m:
-                                        self.Q[ii][i][j][k][l][m][0] = 0.3
+                                        self.Q[ii][i][j][k][l][m][0] = 0.1
         self.eta = 0.8
         # acceleration, monkey location, monkey velocity, distance, tree bot, tree top
 

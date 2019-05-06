@@ -24,7 +24,7 @@ class Learner(object):
         self.b = 10 # vertical
         self.v = 6 # velocity
         self.gamma = 1
-        self.epsilon = 0.1
+        self.epsilon = 0.03
         a = self.a
         b = self.b
         v = self.v
@@ -38,9 +38,9 @@ class Learner(object):
                             for l in range(b):
                                 for m in range(b):
                                     if i <= l and j <= v/2:
-                                        self.Q[ii][i][j][k][l][m][1] = 0.3
+                                        self.Q[ii][i][j][k][l][m][1] = 0.1
                                     elif i >= m:
-                                        self.Q[ii][i][j][k][l][m][0] = 0.3
+                                        self.Q[ii][i][j][k][l][m][0] = 0.1
         self.eta = 0.8
         # acceleration, monkey location, monkey velocity, distance, tree bot, tree top
 
@@ -190,7 +190,7 @@ if __name__ == '__main__':
         hist = []
 
     # Run games. 
-    run_games(agent, hist, 50, 0)
+    run_games(agent, hist, 200, 0)
 
     plt.scatter(range(1, len(hist)+1), hist)
     plt.title(fr"Monkey's Scores ($\eta$ = {eta_orig}, "
