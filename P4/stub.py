@@ -29,7 +29,7 @@ class Learner(object):
         b = self.b
         v = self.v
         self.Q = Q
-        if self.Q is None or Q.shape != (b,v,a,b,b,2):
+        if self.Q is None or Q.shape != (2,b,v,a,b,b,2):
             self.Q = np.zeros((2,b,v,a,b,b,2))
             for ii in range(2):
                 for i in range(b):
@@ -102,10 +102,10 @@ class Learner(object):
                     self.acceleration = 1
                 else:
                     self.acceleration = 0
-            self.Q[m_loc,m_vel,dist,t_bot,t_top,self.last_action] -= self.eta*(self.Q[m_loc,m_vel,dist,t_bot,t_top,self.last_action]  - self.last_reward - 
-                self.gamma * max(self.Q[m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,0],self.Q[m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,1]))
+            self.Q[self.acceleration, m_loc,m_vel,dist,t_bot,t_top,self.last_action] -= self.eta*(self.Q[self.acceleration, m_loc,m_vel,dist,t_bot,t_top,self.last_action]  - self.last_reward - 
+                self.gamma * max(self.Q[self.acceleration, m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,0],self.Q[self.acceleration, m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,1]))
             # print(self.Q[m_loc,m_vel,dist,t_bot,t_top,self.last_action])
-            if self.Q[m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,0] >= self.Q[m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,1]:
+            if self.Q[self.acceleration, m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,0] >= self.Q[self.acceleration, m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,1]:
                 self.last_action = 0
             else:
                 self.last_action = 1
@@ -168,7 +168,8 @@ if __name__ == '__main__':
 
     # Select agent.
     try:
-        Q = np.load('Q.npy')
+        # Q = np.load('Q.npy')
+        Q = None
     except:
         Q = None
     agent = Learner(Q)
@@ -178,14 +179,14 @@ if __name__ == '__main__':
 
     # Create list to save history.
     try:
-        hist = np.load('hist.npy')
-        hist = hist.tolist()
-        # hist = []
+        # hist = np.load('hist.npy')
+        # hist = hist.tolist()
+        hist = []
     except:
         hist = []
 
     # Run games. 
-    run_games(agent, hist, 3, 0)
+    run_games(agent, hist, 50, 0)
 
     plt.scatter(range(1, len(hist)+1), hist)
     plt.title(fr"Monkey's Scores ($\eta$ = {eta_orig}, "

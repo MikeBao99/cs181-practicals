@@ -8,8 +8,6 @@ We split states into buckets
 Rationale for not adding a lot of states: takes too long to train (visit
 	every state)
 
-Initialized Q matrix to not all-zero
-
 Changed monkey velocity to 3 buckets
 
 Then added boundary conditions: if going to fall off the bottom then jump,
