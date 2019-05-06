@@ -5,7 +5,7 @@ import numpy.random as npr
 class SwingyMonkey:
 
     def __init__(self, sound=True, text=None, action_callback=None, 
-                 reward_callback=None, tick_length=100):
+                 reward_callback=None, tick_length=1):
         """Constructor for the SwingyMonkey class.
 
         Possible Keyword Arguments:
@@ -33,7 +33,7 @@ class SwingyMonkey:
         self.screen_height = 400
         self.horz_speed    = 25
         self.impulse       = 15
-        self.gravity       = npr.choice([6])
+        self.gravity       = npr.choice([4])
         self.tree_mean     = 5
         self.tree_gap      = 200
         self.tree_offset   = -300
@@ -45,7 +45,7 @@ class SwingyMonkey:
         self.sound         = sound
         self.action_fn     = action_callback
         self.reward_fn     = reward_callback
-        self.tick_length   = tick_length
+        self.tick_length   = 0
         self.text          = text
 
         # Initialize pygame.

@@ -24,7 +24,7 @@ class Learner(object):
         self.b = 10 # vertical
         self.v = 6 # velocity
         self.gamma = 1
-        self.epsilon = 0.1
+        self.epsilon = 0
         a = self.a
         b = self.b
         v = self.v
