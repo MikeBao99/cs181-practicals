@@ -33,7 +33,7 @@ class SwingyMonkey:
         self.screen_height = 400
         self.horz_speed    = 25
         self.impulse       = 15
-        self.gravity       = npr.choice([4])
+        self.gravity       = npr.choice([1,4])
         self.tree_mean     = 5
         self.tree_gap      = 200
         self.tree_offset   = -300
@@ -45,7 +45,7 @@ class SwingyMonkey:
         self.sound         = sound
         self.action_fn     = action_callback
         self.reward_fn     = reward_callback
-        self.tick_length   = 0
+        self.tick_length   = tick_length
         self.text          = text
 
         # Initialize pygame.
@@ -250,7 +250,7 @@ class SwingyMonkey:
                 self.reward_fn(0.0)            
         
         # Wait just a bit.
-        # pg.time.delay(self.tick_length)
+        pg.time.delay(self.tick_length)
 
         # Move things.
         self.hook -= self.horz_speed

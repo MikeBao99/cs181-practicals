@@ -19,12 +19,11 @@ class Learner(object):
         self.last_action = None
         self.last_reward = None
         self.acceleration = 0.
-        self.n = 0.
         self.a = 15 # horizontal
         self.b = 10 # vertical
         self.v = 6 # velocity
         self.gamma = 1
-        self.epsilon = 0
+        self.epsilon = 0.001
         a = self.a
         b = self.b
         v = self.v
@@ -49,7 +48,6 @@ class Learner(object):
         self.last_action = None
         self.last_reward = None
         self.acceleration = 0.
-        self.n = 0.
         self.eta *= 0.95
         self.epsilon *= 0.8
         # self.Q = np.zeros((b,v,a,b,b,2))
@@ -139,7 +137,7 @@ class Learner(object):
         return self.last_reward
 
 
-def run_games(learner, hist, iters = 100, t_len = 1):
+def run_games(learner, hist, iters = 100, t_len = 0):
     '''
     Driver function to simulate learning by having the agent play a sequence of games.
     '''
@@ -186,7 +184,7 @@ if __name__ == '__main__':
         hist = []
 
     # Run games. 
-    run_games(agent, hist, 50, 0)
+    run_games(agent, hist, 200, 0)
 
     plt.scatter(range(1, len(hist)+1), hist)
     plt.title(fr"Monkey's Scores ($\eta$ = {eta_orig}, "
