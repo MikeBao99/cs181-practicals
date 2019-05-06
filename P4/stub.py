@@ -5,6 +5,7 @@ import pygame as pg
 import matplotlib.pyplot as plt
 import random
 import traceback
+import seaborn as sns
 from SwingyMonkey import SwingyMonkey
 
 
@@ -179,11 +180,12 @@ if __name__ == '__main__':
     try:
         hist = np.load('hist.npy')
         hist = hist.tolist()
+        # hist = []
     except:
         hist = []
 
     # Run games. 
-    run_games(agent, hist, 50, 0)
+    run_games(agent, hist, 3, 0)
 
     plt.scatter(range(1, len(hist)+1), hist)
     plt.title(fr"Monkey's Scores ($\eta$ = {eta_orig}, "
@@ -192,7 +194,9 @@ if __name__ == '__main__':
     plt.ylabel("Score")
     plt.show()
     print(f"Max Score: {max(hist)}")
-
+    sns.distplot(hist, rug=True).set(xlim=(0,None))
+    plt.show()
+    print('Mean:    %f\nStd Dev: %f' % (np.mean(hist), np.std(hist)))
     # Save history and Q
     np.save('hist', np.array(hist))
     np.save('Q', agent.Q)
