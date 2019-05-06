@@ -5,6 +5,7 @@ import pygame as pg
 import matplotlib.pyplot as plt
 import random
 import traceback
+import seaborn as sns
 from SwingyMonkey import SwingyMonkey
 
 
@@ -17,6 +18,8 @@ class Learner(object):
         self.last_state  = None
         self.last_action = None
         self.last_reward = None
+        self.acceleration = 0.
+        self.n = 0.
         self.a = 15 # horizontal
         self.b = 10 # vertical
         self.v = 6 # velocity
@@ -26,24 +29,27 @@ class Learner(object):
         b = self.b
         v = self.v
         self.Q = Q
-        if self.Q is None or Q.shape != (b,v,a,b,b,2):
-            self.Q = np.zeros((b,v,a,b,b,2))
-            for i in range(b):
-                for j in range(v):
-                    for k in range(a):
-                        for l in range(b):
-                            for m in range(b):
-                                if i <= l:
-                                    self.Q[i][j][k][l][m][1] = 0.3
-                                elif i >= m:
-                                    self.Q[i][j][k][l][m][0] = 0.3
+        if self.Q is None or Q.shape != (2,b,v,a,b,b,2):
+            self.Q = np.zeros((2,b,v,a,b,b,2))
+            for ii in range(2):
+                for i in range(b):
+                    for j in range(v):
+                        for k in range(a):
+                            for l in range(b):
+                                for m in range(b):
+                                    if i <= l and j <= v/2:
+                                        self.Q[ii][i][j][k][l][m][1] = 0.3
+                                    elif i >= m:
+                                        self.Q[ii][i][j][k][l][m][0] = 0.3
         self.eta = 0.8
-        # monkey location, monkey velocity, distance, tree bot, tree top
+        # acceleration, monkey location, monkey velocity, distance, tree bot, tree top
 
     def reset(self):
         self.last_state  = None
         self.last_action = None
         self.last_reward = None
+        self.acceleration = 0.
+        self.n = 0.
         self.eta *= 0.95
         self.epsilon *= 0.8
         # self.Q = np.zeros((b,v,a,b,b,2))
@@ -74,9 +80,8 @@ class Learner(object):
 
         # You'll need to select and action and return it.
         # Return 0 to swing and 1 to jump.
-
-
         try:
+            laction = self.last_action
             m_loc,m_vel,dist,t_bot,t_top = 0,0,0,0,0
             m_loc = self.cat_vert(self.last_state['monkey']['bot'])
             m_vel = self.cat_vel(self.last_state['monkey']['vel'])
@@ -92,8 +97,14 @@ class Learner(object):
             t_bot_c = self.cat_vert(state['tree']['bot'])
             t_top_c = self.cat_vert(state['tree']['top'])
 
-            laction = self.last_action
-            if self.Q[m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,0] >= self.Q[m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,1]:
+            if self.last_action == 0:
+                self.acceleration = self.last_state['monkey']['vel'] - state['monkey']['vel']
+                if self.acceleration > 2:
+                    self.acceleration = 1
+                else:
+                    self.acceleration = 0
+
+            if self.Q[self.acceleration, m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,0] >= self.Q[self.acceleration, m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,1]:
                 self.last_action = 0
             else:
                 self.last_action = 1
@@ -102,12 +113,13 @@ class Learner(object):
                 self.last_action = 0
             if m_loc_c == 0:
                 self.last_action = 1
+
             if random.random() < 0.5 * self.epsilon:
                 self.last_action = 1 - self.last_action
-            
-            self.Q[m_loc,m_vel,dist,t_bot,t_top,laction] -= self.eta*(self.Q[m_loc,m_vel,dist,t_bot,t_top,laction]  - self.last_reward - 
-                self.gamma * self.Q[m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,self.last_action])
-            # print(self.Q[m_loc,m_vel,dist,t_bot,t_top,laction])
+
+            self.Q[self.acceleration, m_loc,m_vel,dist,t_bot,t_top,laction] -= self.eta*(self.Q[self.acceleration, m_loc,m_vel,dist,t_bot,t_top,laction]  - self.last_reward - 
+                self.gamma * self.Q[self.acceleration, m_loc_c,m_vel_c,dist_c,t_bot_c,t_top_c,self.last_action])
+            # print(self.Q[m_loc,m_vel,dist,t_bot,t_top,self.last_action])
             
 
             # print(np.count_nonzero(self.Q))
@@ -160,7 +172,8 @@ if __name__ == '__main__':
 
     # Select agent.
     try:
-        Q = np.load('Q.npy')
+        # Q = np.load('Q.npy')
+        Q = None
     except:
         Q = None
     agent = Learner(Q)
@@ -170,8 +183,9 @@ if __name__ == '__main__':
 
     # Create list to save history.
     try:
-        hist = np.load('hist.npy')
-        hist = hist.tolist()
+        # hist = np.load('hist.npy')
+        # hist = hist.tolist()
+        hist = []
     except:
         hist = []
 
@@ -185,7 +199,13 @@ if __name__ == '__main__':
     plt.ylabel("Score")
     plt.show()
     print(f"Max Score: {max(hist)}")
-
+    sns.distplot(hist, rug=True).set(xlim=(0,None))
+    plt.show()
+    print('Mean:    %f\nStd Dev: %f' % (np.mean(hist), np.std(hist)))
     # Save history and Q
     np.save('hist', np.array(hist))
     np.save('Q', agent.Q)
+
+
+
+
