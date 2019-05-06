@@ -36,6 +36,6 @@ Changed back to 10 vertical and tried increasing to 15 horizontal
 Tried 15 horizontal, 10 vertical, 6 velocity buckets (Trial 5); This performed
 	better than with 3 velocity buckets
 
-## TODO
-Make acceleration buckets
-Implement SARSA
+Implemented SARSA, doesn't seem to make much difference
+
+Added two acceleration buckets: high and low; dramatic improvement
